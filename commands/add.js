@@ -35,7 +35,15 @@ module.exports = {
                 grav: { v: data.grav?.victories || 0, p: data.grav?.played || 0 }
             };
             client.saveData(client.CACHE_FILE, client.statsCache);
+            await interaction.reply({ content: `✅ **${name}** を追加しました`, flags: [MessageFlags.Ephemeral] });
+        } else {
+            const index = client.watchedPlayers.indexOf(name);
+            client.watchedPlayers.splice(index, 1);
+            delete client.statsCache[name];
+
+            client.saveData(client.PLAYERS_FILE, client.watchedPlayers);
+            client.saveData(client.CACHE_FILE, client.statsCache);
+            await interaction.reply({ content: `❌ **${name}** のデータを取得できませんでした`, flags: [MessageFlags.Ephemeral] });
         }
-        await interaction.reply({ content: `✅ **${name}** を追加しました`, flags: [MessageFlags.Ephemeral] });
     }
 };
