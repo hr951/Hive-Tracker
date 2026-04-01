@@ -20,3 +20,5 @@ package-lock.json
 test.js
 *.bat
 dev_data/
+data/cache.json
+data/players.json

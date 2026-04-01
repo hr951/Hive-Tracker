@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { basic_embed } = require("../utils/embeds.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -7,10 +8,7 @@ module.exports = {
 
     async execute(interaction, client) {
         const list = client.watchedPlayers.length > 0 ? client.watchedPlayers.map(p => `- ${p}`).join('\n') : '監視中のプレイヤーはいません。';
-        const embed = new EmbedBuilder()
-            .setTitle('📋 監視リスト')
-            .setDescription(list)
-            .setColor('#3498db');
+        const embed = basic_embed('📋 監視リスト', list, '#3498db');
         await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
     }
 };

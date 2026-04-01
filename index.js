@@ -1,9 +1,11 @@
-const { Client, GatewayIntentBits, EmbedBuilder, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const axios = require('axios');
 const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
 require("dotenv").config();
+
+const { basic_embed } = require("./utils/embeds.js");
 
 const client = new Client({
     intents: [
@@ -55,9 +57,20 @@ cron.schedule('* * * * *', async () => {
         const data = await client.fetchAllStats(player);
         if (!data) continue;
 
-        // Skywars と Bedwars をループでチェック
-        ['sky', 'bed'].forEach(gameKey => {
-            const gameName = gameKey === 'sky' ? 'SkyWars' : 'BedWars';
+        ['sky', 'bed', 'ctf', 'hide', 'dr', 'murder', 'sg', 'drop', 'ground', 'build', 'party', 'bridge', 'grav'].forEach(gameKey => {
+            const gameName =
+                gameKey === 'sky' ? 'SkyWars' :
+                    gameKey === 'bed' ? 'BedWars' :
+                        gameKey === 'ctf' ? 'Capture The Flag' :
+                            gameKey === 'hide' ? 'Hide And Seek' :
+                                gameKey === 'dr' ? 'Death Run' :
+                                    gameKey === 'murder' ? 'Murder Mystery' :
+                                        gameKey === 'sg' ? 'Survival Games' :
+                                            gameKey === 'drop' ? 'Block Drop' :
+                                                gameKey === 'ground' ? 'Ground Wars' :
+                                                    gameKey === 'build' ? 'Build Battle' :
+                                                        gameKey === 'party' ? 'Block Party' :
+                                                            gameKey === 'bridge' ? 'The Bridge' : 'Gravity';
             const current = {
                 v: data[gameKey]?.victories || 0,
                 p: data[gameKey]?.played || 0
@@ -71,18 +84,11 @@ cron.schedule('* * * * *', async () => {
                 const diffP = current.p - prev.p;
 
                 if (diffP > 0) { // 試合数が動いた場合
-                    const embed = new EmbedBuilder().setTimestamp();
-
                     if (diffV > 0) {
-                        embed.setTitle(`🏆 【${gameName}】 勝利！`)
-                            .setDescription(`**${player}** が勝利しました！`)
-                            .setColor('#00FF00');
+                        channel.send({ embeds: [basic_embed(`🏆 【${gameName}】 勝利！`, `**${player}** が勝利しました`, '#00FF00')] });
                     } else {
-                        embed.setTitle(`💀 【${gameName}】 敗北...`)
-                            .setDescription(`**${player}** は惜しくも敗北しました。`)
-                            .setColor('#FF0000');
+                        channel.send({ embeds: [basic_embed(`💀 【${gameName}】 敗北...`, `**${player}** が敗北しました`, '#FF0000')] });
                     }
-                    channel.send({ embeds: [embed] });
                 }
             }
 
@@ -93,8 +99,6 @@ cron.schedule('* * * * *', async () => {
     }
     client.saveData(client.CACHE_FILE, client.statsCache);
 });
-
-client.commands = new Collection();
 
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
