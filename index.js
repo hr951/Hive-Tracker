@@ -93,32 +93,57 @@ cron.schedule('* * * * *', async () => {
             const games = ['sky', 'bed', 'ctf', 'hide', 'dr', 'murder', 'sg', 'drop', 'ground', 'build', 'party', 'bridge', 'grav'];
 
             games.forEach(gameKey => {
-                const current = { v: data[gameKey]?.victories || 0, p: data[gameKey]?.played || 0 };
-                const prev = client.statsCache[player]?.[gameKey];
+                const current = {
+                    v: data[gameKey]?.victories || 0,
+                    p: data[gameKey]?.played || 0
+                };
+                const prev = client.statsCache[player]?.[gameKey] || { v: 0, p: 0, s: 0 };
                 const gameName = getGameName(gameKey);
 
-                if (prev && current.p > prev.p) {
-                    const diffV = current.v - prev.v;
-                    const diffP = current.p - prev.p;
+                const diffV = current.v - prev.v;
+                const diffP = current.p - prev.p;
+
+                if (diffP > 0) {
+                    let newStreak = prev.s || 0;
+                    const lossCount = diffP - diffV;
+
+                    if (lossCount === 0) {
+                        newStreak += diffV;
+                    } else {
+                        newStreak = 0;
+                    }
+
                     const fields = [
                         { name: "勝利数", value: `${prev.v} -> ${current.v} (+${diffV})` },
-                        { name: "敗北数", value: `${prev.p - prev.v} -> ${current.p - current.v} (+${diffP - diffV})` }
+                        { name: "敗北数", value: `${prev.p - prev.v} -> ${current.p - current.v} (+${lossCount})` },
+                        { name: "推定連勝数", value: `${prev.s} -> ${newStreak} (+${newStreak - prev.s})` }
                     ];
-                    channel.send({ embeds: [fields_embed(`⚔️ ${player}: ${gameName} をプレイ`, undefined, fields, '#00FF00')] });
+
+                    const color = newStreak > 0 ? '#00FF00' : '#FF4500';
+                    channel.send({ embeds: [fields_embed(`⚔️ ${player}: ${gameName}`, undefined, fields, color)] });
+
+                    // 一時的なバッファに連勝数を保存（後で一括更新するため）
+                    if (!latestDataBuffer[player].streaks) latestDataBuffer[player].streaks = {};
+                    latestDataBuffer[player].streaks[gameKey] = newStreak;
                 }
             });
         }
     }
 
-    // 4. すべてのサーバーへの送信が終わったら、最後に一括でキャッシュを更新
+    // 4. 最後に一括でキャッシュを更新
     for (const player in latestDataBuffer) {
         const data = latestDataBuffer[player];
         if (!client.statsCache[player]) client.statsCache[player] = {};
 
         ['sky', 'bed', 'ctf', 'hide', 'dr', 'murder', 'sg', 'drop', 'ground', 'build', 'party', 'bridge', 'grav'].forEach(gameKey => {
+            const updatedStreak = data.streaks?.[gameKey] !== undefined
+                ? data.streaks[gameKey]
+                : (client.statsCache[player][gameKey]?.s || 0);
+
             client.statsCache[player][gameKey] = {
                 v: data[gameKey]?.victories || 0,
-                p: data[gameKey]?.played || 0
+                p: data[gameKey]?.played || 0,
+                s: updatedStreak
             };
         });
     }
