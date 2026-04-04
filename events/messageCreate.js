@@ -11,11 +11,11 @@ module.exports = {
                 message.reply({ embeds: [embed] });
             } else if (message.content === ("!hive") && message.author.id === "962670040795201557") {
                 const guilds = client.guilds.cache;
-                console.log("--------------------");
+                console.log("----------------------------------------");
                 guilds.forEach(guild => {
                     console.log(`- ${guild.name} (ID: ${guild.id})`);
                 });
-                console.log("--------------------");
+                console.log("----------------------------------------");
             }
         }
     },
