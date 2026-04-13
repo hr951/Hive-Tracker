@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, Collection, AttachmentBuilder } = require('discord.js');
 const axios = require('axios');
 const cron = require('node-cron');
 const path = require('path');
@@ -12,7 +12,14 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages
+    ],
+    partials: [
+        Partials.Channel,
+        Partials.Message,
+        Partials.Reaction,
+        Partials.User
     ]
 });
 

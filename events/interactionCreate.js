@@ -7,7 +7,7 @@ module.exports = {
         if (interaction.isChatInputCommand()) {
             if (!client.whiteList[interaction.guildId]) {
                 return interaction.reply({
-                    content: '❌ このサーバーではこのボットを利用する権限がありません',
+                    content: '❌ このサーバーではこのボットを利用する権限がありません\n※当ボットはホワイトリスト制を採用しています\n　使用申請は当ボットのDMに`使用申請`と送信してください',
                     flags: [MessageFlags.Ephemeral]
                 });
             }
@@ -30,6 +30,28 @@ module.exports = {
                         console.error(error);
                     }
                 }
+            }
+        };
+
+        if (interaction.isButton()) {
+            try {
+                const button = require(`../interactions/buttons/${interaction.customId}.js`);
+                await button.execute(interaction, client);
+            } catch (error) {
+                console.error(`${interaction.customId} が見つかりません\n` + error);
+                interaction.reply({ content: "Error", flags: [MessageFlags.Ephemeral] });
+                return;
+            }
+        };
+
+        if (interaction.isModalSubmit()) {
+            try {
+                const modal = require(`../interactions/modals/${interaction.customId}.js`);
+                await modal.execute(interaction, client);
+            } catch (error) {
+                console.error(`${interaction.customId} が見つかりません\n` + error);
+                interaction.reply({ content: "Error", flags: [MessageFlags.Ephemeral] });
+                return;
             }
         };
     },
