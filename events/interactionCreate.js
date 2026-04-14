@@ -35,7 +35,9 @@ module.exports = {
 
         if (interaction.isButton()) {
             try {
-                const button = require(`../interactions/buttons/${interaction.customId}.js`);
+                const parts = interaction.customId.split('__');
+                const fileName = parts[0];
+                const button = require(`../interactions/buttons/${fileName}.js`);
                 await button.execute(interaction, client);
             } catch (error) {
                 console.error(`${interaction.customId} が見つかりません\n` + error);
@@ -46,7 +48,9 @@ module.exports = {
 
         if (interaction.isModalSubmit()) {
             try {
-                const modal = require(`../interactions/modals/${interaction.customId}.js`);
+                const parts = interaction.customId.split('__');
+                const fileName = parts[0];
+                const modal = require(`../interactions/modals/${fileName}.js`);
                 await modal.execute(interaction, client);
             } catch (error) {
                 console.error(`${interaction.customId} が見つかりません\n` + error);
