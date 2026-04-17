@@ -3,10 +3,10 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('add')
-        .setDescription('プレイヤーを監視リストに追加')
+        .setDescription('ユーザーを監視リストに追加')
         .addStringOption(option =>
             option.setName('name')
-                .setDescription('プレイヤー名')
+                .setDescription('ユーザー名')
                 .setRequired(true)
         ),
 

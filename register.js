@@ -7,25 +7,25 @@ const clientId = "1488577463251636376";
 // ----- グローバルコマンドここから-----
 const add = new SlashCommandBuilder()
     .setName('add')
-    .setDescription('プレイヤーを監視リストに追加')
+    .setDescription('ユーザーを監視リストに追加')
     .addStringOption(option =>
         option.setName('name')
-            .setDescription('プレイヤー名')
+            .setDescription('ユーザー名')
             .setRequired(true)
     );
 
 const remove = new SlashCommandBuilder()
     .setName('remove')
-    .setDescription('プレイヤーを監視リストから削除')
+    .setDescription('ユーザーを監視リストから削除')
     .addStringOption(option =>
         option.setName('name')
-            .setDescription('プレイヤー名')
+            .setDescription('ユーザー名')
             .setRequired(true)
     );
 
 const list = new SlashCommandBuilder()
     .setName('list')
-    .setDescription('監視中のプレイヤー一覧を表示');
+    .setDescription('追跡中のユーザー一覧を表示');
 
 const setup = new SlashCommandBuilder()
     .setName('setup')

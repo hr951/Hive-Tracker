@@ -4,7 +4,7 @@ const { basic_embed } = require("../utils/embeds.js");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('list')
-        .setDescription('監視中のプレイヤー一覧を表示'),
+        .setDescription('追跡中のユーザー一覧を表示'),
 
     async execute(interaction, client) {
         const guildId = interaction.guildId;
