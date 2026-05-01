@@ -1,5 +1,6 @@
 const { MessageFlags, ButtonBuilder, ActionRowBuilder } = require("discord.js");
 const { basic_embed } = require("../../utils/embeds.js");
+const { hr_error } = require("../../utils/createLogs.js");
 
 module.exports = {
     async execute(interaction) {
@@ -11,7 +12,7 @@ module.exports = {
             const disabledButton = ButtonBuilder.from(interaction.component).setDisabled(true);
             await interaction.update({ components: [new ActionRowBuilder().addComponents(disabledButton)] });
         } catch (error) {
-            console.error(error);
+            hr_error(error.message, "");
             await interaction.reply({
                 content: "DMの送信中にエラーが発生しました",
                 flags: [MessageFlags.Ephemeral]

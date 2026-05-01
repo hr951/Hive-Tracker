@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { hr_log } = require('../utils/createLogs');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -55,7 +56,7 @@ module.exports = {
                 content: `✅ **${realName}** を追加しました`,
                 flags: [MessageFlags.Ephemeral]
             });
-            await console.log(`User Add: ${realName}`);
+            await hr_log(`User Add: ${realName}`);
         } else {
             await interaction.reply({
                 content: `❌ **${name}** というプレイヤーは見つかりませんでした。`,

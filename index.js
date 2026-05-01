@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const { fields_embed } = require("./utils/embeds.js");
 const { getGameName } = require("./utils/getGameName.js");
+const { hr_log, hr_error } = require("./utils/createLogs.js");
 
 const client = new Client({
     intents: [
@@ -58,14 +59,14 @@ client.fetchAllStats = async (player) => {
         return res.data;
     } catch (error) {
         if (error.response?.status !== 404) {
-            console.error(`${player} のデータ取得失敗:`, error.message);
+            hr_error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
         }
         return null;
     }
 };
 
-// 2. 定期監視 (1分おき)
-cron.schedule('* * * * *', async () => {
+// 2. 定期監視 (2分おき)
+cron.schedule('*/2 * * * *', async () => {
     // 今回のループで取得した最新データを一時的に保存する場所
     const latestDataBuffer = {};
 
@@ -112,10 +113,12 @@ cron.schedule('* * * * *', async () => {
 
                 if (diffP > 0) {
                     let newStreak = prev.s || 0;
+                    let newStreakMark = "";
                     const lossCount = diffP - diffV;
 
                     if (lossCount === 0) {
                         newStreak += diffV;
+                        newStreakMark = "+";
                     } else {
                         newStreak = 0;
                     }
@@ -123,7 +126,7 @@ cron.schedule('* * * * *', async () => {
                     const fields = [
                         { name: "勝利数", value: `${prev.v} -> ${current.v} (+${diffV})` },
                         { name: "敗北数", value: `${prev.p - prev.v} -> ${current.p - current.v} (+${lossCount})` },
-                        { name: "推定連勝数", value: `${prev.s} -> ${newStreak} (+${newStreak - prev.s})` }
+                        { name: "推定連勝数", value: `${prev.s} -> ${newStreak} (${newStreakMark}${newStreak - prev.s})` }
                     ];
 
                     const color = newStreak > 0 ? '#00FF00' : '#FF4500';
@@ -133,7 +136,7 @@ cron.schedule('* * * * *', async () => {
                     try {
                         channel.send({ embeds: [fields_embed(`${player}: ${gameName}`, undefined, fields, `attachment://${gameKey}.png`, color)], files: [img] });
                     } catch (error) {
-                        console.error("メッセージの送信に失敗しました\n" + error);
+                        hr_error(`メッセージの送信に失敗しました\n${error}`, "");
                     }
 
                     // 一時的なバッファに連勝数を保存（後で一括更新するため）
@@ -173,7 +176,7 @@ for (const file of commandFiles) {
     if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
     } else {
-        console.log(`${filePath} に必要な "data" か "execute" がありません。`);
+        hr_log(`${filePath} に必要な "data" か "execute" がありません。`);
     }
 }
 
