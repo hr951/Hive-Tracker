@@ -1,5 +1,4 @@
 const { MessageFlags } = require("discord.js");
-const { hr_error } = require("../utils/createLogs");
 require("dotenv").config();
 
 module.exports = {
@@ -14,7 +13,7 @@ module.exports = {
             }
             const command = interaction.client.commands.get(interaction.commandName);
             if (!command) {
-                hr_error(`${interaction.commandName} が見つかりません。`, "");
+                custom.error(`${interaction.commandName} が見つかりません。`, "");
                 return;
             }
             try {
@@ -22,13 +21,13 @@ module.exports = {
             } catch (error) {
                 try {
                     await interaction.reply({ content: 'Error', flags: [MessageFlags.Ephemeral] });
-                    hr_error(error.message, "");
+                    custom.error(error.message, "");
                 } catch (error) {
                     try {
                         await interaction.editReply({ content: 'Error', flags: [MessageFlags.Ephemeral] });
-                        hr_error(error.message, "");
+                        custom.error(error.message, "");
                     } catch (error) {
-                        hr_error(error.message, "");
+                        custom.error(error.message, "");
                     }
                 }
             }
@@ -41,7 +40,7 @@ module.exports = {
                 const button = require(`../interactions/buttons/${fileName}.js`);
                 await button.execute(interaction, client);
             } catch (error) {
-                hr_error(`${interaction.customId} が見つかりません\n${error.message}`, "");
+                custom.error(`${interaction.customId} が見つかりません\n${error.message}`, "");
                 interaction.reply({ content: "Error", flags: [MessageFlags.Ephemeral] });
                 return;
             }
@@ -54,7 +53,7 @@ module.exports = {
                 const modal = require(`../interactions/modals/${fileName}.js`);
                 await modal.execute(interaction, client);
             } catch (error) {
-                hr_error(`${interaction.customId} が見つかりません\n${error.message}`, "");
+                custom.error(`${interaction.customId} が見つかりません\n${error.message}`, "");
                 interaction.reply({ content: "Error", flags: [MessageFlags.Ephemeral] });
                 return;
             }

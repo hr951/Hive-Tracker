@@ -18,6 +18,7 @@ package-lock.json
 
 # 検証用ファイル
 test.js
+node-test.js
 *.bat
 dev_data/
 data/cache.json

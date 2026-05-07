@@ -4,10 +4,10 @@ const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
 require("dotenv").config();
+require('./utils/createLogs.js');
 
 const { fields_embed } = require("./utils/embeds.js");
 const { getGameName } = require("./utils/getGameName.js");
-const { hr_log, hr_error } = require("./utils/createLogs.js");
 
 const client = new Client({
     intents: [
@@ -59,7 +59,7 @@ client.fetchAllStats = async (player) => {
         return res.data;
     } catch (error) {
         if (error.response?.status !== 404) {
-            hr_error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
+            custom.error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
         }
         return null;
     }
@@ -136,7 +136,7 @@ cron.schedule('*/2 * * * *', async () => {
                     try {
                         channel.send({ embeds: [fields_embed(`${player}: ${gameName}`, undefined, fields, `attachment://${gameKey}.png`, color)], files: [img] });
                     } catch (error) {
-                        hr_error(`メッセージの送信に失敗しました\n${error}`, "");
+                        custom.error(`メッセージの送信に失敗しました\n${error}`, "");
                     }
 
                     // 一時的なバッファに連勝数を保存（後で一括更新するため）
@@ -176,7 +176,7 @@ for (const file of commandFiles) {
     if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
     } else {
-        hr_log(`${filePath} に必要な "data" か "execute" がありません。`);
+        custom.log(`${filePath} に必要な "data" か "execute" がありません。`);
     }
 }
 

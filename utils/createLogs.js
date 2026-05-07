@@ -146,22 +146,30 @@ function getErrorCode(code) {
     }
     let error;
     if (code) {
-        error = code, errorCode[code].status, "(" + errorCode[code].description + ")";
+        error = `${code} ${errorCode[code].status} (${errorCode[code].description})`;
     } else {
         error = "エラーコード: 不明"
     }
     return error;
 }
 
-function hr_log(content) {
-    console.log("[" + getDate() + "]", content);
-}
+const custom = {
+    /**
+     * 通常のログ出力
+     * @param {any} content 
+     */
+    log: (content) => {
+        console.log(`[${getDate()}]`, content);
+    },
 
-function hr_error(content, code) {
-    console.error("[" + getDate() + "]", getErrorCode(code) + "\n" + content);
-}
-
-module.exports = {
-    hr_log,
-    hr_error
+    /**
+     * エラーログ出力
+     * @param {any} content 
+     * @param {string|number} code 
+     */
+    error: (content, code) => {
+        console.error(`[${getDate()}]`, `${getErrorCode(code)}\n${content}`);
+    }
 };
+
+global.custom = custom;

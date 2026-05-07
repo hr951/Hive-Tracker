@@ -1,7 +1,5 @@
 const { MessageFlags, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js");
 const { basic_embed } = require("../../utils/embeds.js");
-const { hr_error } = require("../../utils/createLogs.js");
-
 module.exports = {
     async execute(interaction) {
         const server_name = interaction.fields.getTextInputValue("server_name");
@@ -28,7 +26,7 @@ module.exports = {
                 flags: [MessageFlags.Ephemeral]
             });
         } catch (error) {
-            hr_error(error.message, "");
+            custom.error(error.message, "");
             await interaction.reply({
                 content: "使用申請送信中にエラーが発生しました",
                 flags: [MessageFlags.Ephemeral]

@@ -1,5 +1,4 @@
 const { ActivityType, PresenceUpdateStatus } = require("discord.js");
-const { hr_log } = require("../utils/createLogs");
 require("dotenv").config();
 
 module.exports = {
@@ -18,6 +17,6 @@ module.exports = {
             });
         }, 10_000);
 
-        hr_log(`Logged in as ${client.user.tag}`);
+        custom.log(`Logged in as ${client.user.tag}`);
     },
 };

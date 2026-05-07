@@ -1,6 +1,5 @@
 const { MessageFlags, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js");
 const { basic_embed } = require("../utils/embeds.js");
-const { hr_log } = require("../utils/createLogs.js");
 
 module.exports = {
     name: 'messageCreate',
@@ -13,11 +12,11 @@ module.exports = {
                 message.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
             } else if (message.content === ("!hive") && message.author.id === "962670040795201557") {
                 const guilds = client.guilds.cache;
-                hr_log("----------------------------------------");
+                custom.log("----------------------------------------");
                 guilds.forEach(guild => {
-                    hr_log(`- ${guild.name} (ID: ${guild.id})`);
+                    custom.log(`- ${guild.name} (ID: ${guild.id})`);
                 });
-                hr_log("----------------------------------------");
+                custom.log("----------------------------------------");
             }
         }
 

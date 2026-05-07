@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const { hr_log } = require('../utils/createLogs');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -39,7 +38,7 @@ module.exports = {
             }
         }
 
-        await hr_log(`User Remove: ${targetName}`);
+        await custom.log(`User Remove: ${targetName}`);
 
         await interaction.reply({
             content: `🗑️ **${targetName}** を監視リストから削除しました`,
