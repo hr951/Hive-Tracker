@@ -4,143 +4,143 @@ function getErrorCode(code) {
     const errorCode = {
         400: {
             "status": "Bad Request",
-            "description": "一般的なクライアントエラー"
+            "description": "リクエストの構文やパラメータが不正です。"
         },
         401: {
             "status": "Unauthorized",
-            "description": "アクセス権が無い、または認証に失敗"
+            "description": "認証が必要です。または認証に失敗しました。"
         },
         402: {
             "status": "Payment Required",
-            "description": "料金の支払いをするまでリクエストを処理できない状態"
+            "description": "決済の完了、または支払いの手続きが必要です。"
         },
         403: {
             "status": "Forbidden",
-            "description": "閲覧権限が無いファイルやフォルダ"
+            "description": "アクセス権限がないため、閲覧・操作が禁止されています。"
         },
         404: {
             "status": "Not Found",
-            "description": "Webページが見つからない"
+            "description": "指定されたリソース（ページやファイル）が見つかりません。"
         },
         405: {
             "status": "Method Not Allowed",
-            "description": "送信するクライアント側のメソッドが許可されていない"
+            "description": "許可されていないHTTPメソッドが使用されました。"
         },
         406: {
             "status": "Not Acceptable",
-            "description": "サーバ側が受付不可能な値（ファイルの種類など）であり提供できない状態"
+            "description": "サーバ側が受け入れ可能な形式（Content-Type等）ではありません。"
         },
         407: {
             "status": "Proxy Authentication Required",
-            "description": "プロキシサーバ経由で通信を行う際にプロキシサーバの認証情報が不足している"
+            "description": "プロキシサーバでの認証が必要です。"
         },
         408: {
             "status": "Request Timeout",
-            "description": "リクエスト送信後のやり取りに時間が長すぎるため時間切れ"
+            "description": "リクエストの送信に時間がかかりすぎたため、タイムアウトしました。"
         },
         409: {
             "status": "Conflict",
-            "description": "サーバに既に存在しているデータが競合しているためリクエストを完了できない"
+            "description": "現在のサーバ状態と競合が発生したため、処理を完了できません。"
         },
         410: {
             "status": "Gone",
-            "description": "ファイルが削除されたため、ほぼ永久的にWebページが存在しない"
+            "description": "リソースは恒久的に削除されており、存在しません。"
         },
         411: {
             "status": "Length Required",
-            "description": "Content-Lengthとはリクエストヘッダに送るデータ容量が書いてある項目サーバの方でContent-Lengthヘッダが無いためアクセスを拒否した"
+            "description": "Content-Length ヘッダの指定が必要です。"
         },
         412: {
             "status": "Precondition Failed",
-            "description": "ヘッダで定義された前提条件が満たされていない場合にアクセス拒否される"
+            "description": "リクエストヘッダで指定された前提条件が満たされていません。"
         },
         413: {
             "status": "Payload Too Large",
-            "description": "ファイルをアップロードする際にサーバで定めたファイル容量の上限を超えてしまった為アクセス拒否された"
+            "description": "リクエストデータ（ファイル等）の容量がサーバの上限を超えています。"
         },
         414: {
             "status": "URI Too Long",
-            "description": "指定したURLが長すぎる"
+            "description": "リクエストURLの長さがサーバの上限を超えています。"
         },
         415: {
             "status": "Unsupported Media Type",
-            "description": "サーバで許可していないリクエストの種類の為アクセス拒否された"
+            "description": "サポートされていないメディアタイプ（ファイル形式）です。"
         },
         416: {
             "status": "Range Not Satisfiable",
-            "description": "サーバーがリクエストされた範囲（容量）を提供できない"
+            "description": "リクエストされたデータの範囲を満たすことができません。"
         },
         417: {
             "status": "Expectation Failed",
-            "description": "サーバが拡張されたステータスコードを返すことが出来ない"
+            "description": "Expectヘッダによるサーバの期待に応えることができません。"
         },
         422: {
             "status": "Unprocessable Entity",
-            "description": "WebDAVの拡張ステータスコードリクエストは適正だが意味が異なるためサーバが返すことが出来ない"
+            "description": "構文は正しいですが、意味的なエラーのため処理できません。"
         },
         423: {
             "status": "Locked",
-            "description": "WebDAVの拡張ステータスコードリクエスト内容がロックされているためサーバが返すことが出来ない"
+            "description": "アクセスしようとしたリソースはロックされています。"
         },
         425: {
             "status": "Too Early",
-            "description": "サーバが繰り返し処理が発生される可能性のあるリクエストと判断したため処理が出来ないと判断した※ 無限ループでサーバに高負荷がかかるリスクの可能性がある為"
+            "description": "リプレイ攻撃のリスクがあるため、早い段階での処理を拒否しました。"
         },
         426: {
             "status": "Upgrade Required",
-            "description": "Upgrading to TLS Within HTTP/1.1の拡張ステータスコードHTTP/1.1にアップグレードが必要な為、サーバが処理できない"
+            "description": "新しいプロトコル（TLSやHTTPバージョン）へのアップグレードが必要です。"
         },
         429: {
             "status": "Too Many Requests",
-            "description": "一定時間内にリクエスト数が多すぎるためアクセスを拒否した※ DDos攻撃によるサーバダウンのリスクを回避する為"
+            "description": "リクエスト回数の制限を超えました。時間を空けて再試行してください。"
         },
         431: {
             "status": "Request Header Fields Too Large",
-            "description": "リクエストヘッダーが長すぎるためサーバ処理が拒否した"
+            "description": "リクエストヘッダのサイズがサーバの上限を超えています。"
         },
         500: {
             "status": "Internal Server Error",
-            "description": "何らかのサーバ内で起きたエラー"
+            "description": "サーバ内部で予期しないエラーが発生しました。"
         },
         501: {
             "status": "Not Implemented",
-            "description": "サーバーがリクエストに満たすのに必要な機能をサポートしていない"
+            "description": "リクエストされた機能はサーバで実装されていません。"
         },
         502: {
             "status": "Bad Gateway",
-            "description": "ゲートウェイ・プロキシサーバが不正なリクエストを受け取り拒否した"
+            "description": "ゲートウェイまたはプロキシサーバが、上位サーバから不正な応答を受け取りました。"
         },
         503: {
             "status": "Service Unavailable	",
-            "description": "一時的にサーバにアクセスが出来ない"
+            "description": "サーバが一時的に過負荷、またはメンテナンス中です。"
         },
         504: {
             "status": "Gateway Timeout",
-            "description": "リクエストを送ったサーバからの適切なレスポンスがなくタイムアウトした"
+            "description": "ゲートウェイまたはプロキシサーバが、タイムアウト内に応答を受け取れませんでした。"
         },
         505: {
             "status": "HTTP Version Not Supported",
-            "description": "HTTP バージョンがサーバによってサポートされていない"
+            "description": "リクエストされたHTTPバージョンはサポートされていません。"
         },
         506: {
             "status": "Variant Also Negotiates",
-            "description": "Transparent Content Negotiation in HTTPで定義されている拡張ステータスコードURLを返すコンテンツで配置ミスなどによる内部サーバエラー"
+            "description": "サーバ内部のコンテンツネゴシエーション設定に誤りがあります。"
         },
         507: {
             "status": "Insufficient Storage",
-            "description": "WebDAV拡張ステータスコードサーバで処理するためのストレージ容量不足"
+            "description": "リクエストの処理に必要なストレージ容量がサーバに不足しています。"
         },
         508: {
             "status": "Loop Detected",
-            "description": "主に開発中のプログラム処理で、無限ループに陥ったためサーバーが操作を終了"
+            "description": "サーバがリクエスト処理中に無限ループを検出しました。"
         },
         510: {
             "status": "Not Extended",
-            "description": "主に静的ファイルへのアクセス集中による一時的に表示されるエラー"
+            "description": "リクエストを処理するために、ポリシーのさらなる拡張が必要です。"
         },
         511: {
             "status": "Network Authentication Required",
-            "description": "ネットワーク認証が必要"
+            "description": "ネットワークにアクセスするためには、事前の認証が必要です。"
         }
 
     }
