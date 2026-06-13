@@ -38,7 +38,7 @@ module.exports = {
             }
         }
 
-        await custom.log(`User Remove: ${targetName}`);
+        await custom.log(`User Remove: ${targetName}\nRemoved by ${interaction.member.displayName} / ${interaction.user.globalName} / ${interaction.user.tag}`);
 
         await interaction.reply({
             content: `🗑️ **${targetName}** を監視リストから削除しました`,
