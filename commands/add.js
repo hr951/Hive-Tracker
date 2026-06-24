@@ -55,7 +55,7 @@ module.exports = {
                 content: `✅ **${realName}** を追加しました`,
                 flags: [MessageFlags.Ephemeral]
             });
-            await custom.log(`User Add: ${realName}\nAdded by ${interaction.member.displayName} / ${interaction.user.globalName} / ${interaction.user.tag}`);
+            await custom.log(`User Add: ${realName}\nAdded by ${interaction.member.displayName} / ${interaction.user.globalName} / ${interaction.user.tag} / ${interaction.user.id}`);
         } else {
             await interaction.reply({
                 content: `❌ **${name}** というプレイヤーは見つかりませんでした。`,
