@@ -1,11 +1,12 @@
 const { MessageFlags } = require("discord.js");
-require("dotenv").config();
+const { HiveTracker } = require('../db/db.js');
 
 module.exports = {
     name: 'interactionCreate',
     async execute(interaction, client) {
         if (interaction.isChatInputCommand()) {
-            if (!client.whiteList[interaction.guildId]) {
+            const isWhitelisted = await HiveTracker.exists({ _id: interaction.guildId });
+            if (!isWhitelisted) {
                 return interaction.reply({
                     content: '❌ このサーバーではこのボットを利用する権限がありません\n※このボットはホワイトリスト制を採用しています\n　使用申請はこのボットのDMに`使用申請`と送信してください',
                     flags: [MessageFlags.Ephemeral]

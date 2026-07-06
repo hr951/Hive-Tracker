@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { HiveTracker, UserCache } = require('../db/db.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,38 +12,39 @@ module.exports = {
         ),
 
     async execute(interaction, client) {
+        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+
         const guildId = interaction.guildId;
         const name = interaction.options.getString('name');
 
-        const players = client.watchedPlayers[guildId];
-        if (!players || !players.some(p => p.toLowerCase() === name.toLowerCase())) {
-            return interaction.reply({
-                content: `リストに **${name}** は見つかりませんでした。`,
-                flags: [MessageFlags.Ephemeral]
+        const guildConfig = await HiveTracker.findById(guildId);
+        const players = guildConfig?.watchedPlayers || [];
+
+        // 大小文字を区別せずに一致するプレイヤーを探す
+        const targetName = players.find(p => p.toLowerCase() === name.toLowerCase());
+
+        if (!targetName) {
+            return interaction.editReply({
+                content: `リストに **${name}** は見つかりませんでした。`
             });
         }
 
-        const targetName = players.find(p => p.toLowerCase() === name.toLowerCase());
+        // サーバーの配列から削除して保存
+        guildConfig.watchedPlayers = players.filter(p => p !== targetName);
+        await guildConfig.save();
 
-        client.watchedPlayers[guildId] = players.filter(p => p !== targetName);
-        client.saveData(client.PLAYERS_FILE, client.watchedPlayers);
+        // 他のすべてのサーバーで、このプレイヤーがまだ監視リストに残っているかを確認
+        const isStillWatchedSomewhere = await HiveTracker.exists({ watchedPlayers: targetName });
 
-        const isStillWatchedSomewhere = Object.values(client.watchedPlayers).some(list =>
-            list.includes(targetName)
-        );
-
+        // どこでも監視されていなければキャッシュを削除
         if (!isStillWatchedSomewhere) {
-            if (client.statsCache[targetName]) {
-                delete client.statsCache[targetName];
-                client.saveData(client.CACHE_FILE, client.statsCache);
-            }
+            await UserCache.findByIdAndDelete(targetName);
         }
 
         await custom.log(`User Remove: ${targetName}\nRemoved by ${interaction.member.displayName} / ${interaction.user.globalName} / ${interaction.user.tag}`);
 
-        await interaction.reply({
-            content: `🗑️ **${targetName}** を監視リストから削除しました`,
-            flags: [MessageFlags.Ephemeral]
+        await interaction.editReply({
+            content: `🗑️ **${targetName}** を監視リストから削除しました`
         });
     }
 };

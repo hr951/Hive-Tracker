@@ -1,5 +1,5 @@
 {
-  "name": "hive",
+  "name": "hive-tracker",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,10 @@
     "axios": "^1.14.0",
     "discord.js": "^14.26.0",
     "dotenv": "^17.3.1",
-    "node-cron": "^4.2.1"
+    "express": "^5.2.1",
+    "mongoose": "^9.7.3",
+    "node-cron": "^4.2.1",
+    "pm2": "^7.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

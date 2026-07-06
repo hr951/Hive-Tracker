@@ -3,11 +3,14 @@ const axios = require('axios');
 const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 require("dotenv").config();
 require('./utils/createLogs.js');
-
+const { HiveTracker, UserCache } = require('./db/db.js');
 const { fields_embed } = require("./utils/embeds.js");
 const { getGameName } = require("./utils/getGameName.js");
+
+require('./server');
 
 const client = new Client({
     intents: [
@@ -24,35 +27,15 @@ const client = new Client({
     ]
 });
 
-// 設定
 const token = process.env.DISCORD_BOT_TOKEN;
+const uri = process.env.DB;
 
-const PLAYERS_FILE = path.join(__dirname, 'data', 'players.json');
-const CACHE_FILE = path.join(__dirname, 'data', 'cache.json');
-const GUILD_CONFIG_FILE = path.join(__dirname, 'data', 'guild_configs.json');
-const WHITELIST_FILE = path.join(__dirname, 'data', 'whiteList.json');
-
-// --- データ管理関数 ---
-function loadData(filePath, defaultValue = []) {
-    if (!fs.existsSync(filePath)) {
-        fs.mkdirSync(path.dirname(filePath), { recursive: true });
-        fs.writeFileSync(filePath, JSON.stringify(defaultValue));
-        return defaultValue;
-    }
-    return JSON.parse(fs.readFileSync(filePath));
-}
+mongoose.connect(uri)
+    .then(() => console.log(' Connected DataBase - index.js'))
+    .catch(err => console.error('MongoDB Connection Error:', err));
 
 client.commands = new Collection();
-client.watchedPlayers = loadData(PLAYERS_FILE, {});
-client.statsCache = loadData(CACHE_FILE, {});
-client.guildConfigs = loadData(GUILD_CONFIG_FILE, {});
-client.whiteList = loadData(WHITELIST_FILE, {});
-client.PLAYERS_FILE = PLAYERS_FILE;
-client.CACHE_FILE = CACHE_FILE;
-client.GUILD_CONFIG_FILE = GUILD_CONFIG_FILE;
-client.WHITELIST_FILE = WHITELIST_FILE;
 
-client.saveData = (filePath, data) => fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 client.fetchAllStats = async (player) => {
     try {
         const res = await axios.get(`https://api.playhive.com/v0/game/all/all/${player}`);
@@ -67,17 +50,22 @@ client.fetchAllStats = async (player) => {
 
 // 2. 定期監視 (2分おき)
 cron.schedule('*/2 * * * *', async () => {
-    // 今回のループで取得した最新データを一時的に保存する場所
+    // 1. DBからすべての有効なサーバー設定と、すべてのキャッシュデータを一括取得
+    const allGuilds = await HiveTracker.find({});
+    const allCaches = await UserCache.find({});
+
+    // 扱いやすいように Map化 または オブジェクト化
+    const cacheMap = new Map(allCaches.map(c => [c._id, c.cache]));
     const latestDataBuffer = {};
 
-    // 1. まず、全サーバーで監視されている「重複のないプレイヤーリスト」を作成
+    // 2. 重複のないプレイヤーリストを作成
     const allUniquePlayers = new Set();
-    for (const guildId in client.watchedPlayers) {
-        if (!client.whiteList[guildId]) continue;
-        client.watchedPlayers[guildId].forEach(p => allUniquePlayers.add(p));
+    for (const guild of allGuilds) {
+        // DBに存在する ＝ whiteListにある という扱いにすればOK
+        guild.watchedPlayers.forEach(p => allUniquePlayers.add(p));
     }
 
-    // 2. ユニークなプレイヤー全員分のデータを先に取得してバッファに入れる
+    // 3. ユニークなプレイヤー全員分のデータを取得してバッファに
     for (const player of allUniquePlayers) {
         const data = await client.fetchAllStats(player);
         if (data) {
@@ -85,16 +73,14 @@ cron.schedule('*/2 * * * *', async () => {
         }
     }
 
-    // 3. 各サーバーごとに通知判定を行う（ここではキャッシュを書き換えない）
-    for (const guildId in client.watchedPlayers) {
-        if (!client.whiteList[guildId]) continue;
-
-        const channelId = client.guildConfigs[guildId];
+    // 4. 各サーバーごとに通知判定を行う
+    for (const guild of allGuilds) {
+        const channelId = guild.channelId_send;
         if (!channelId) continue;
         const channel = await client.channels.fetch(channelId).catch(() => null);
         if (!channel) continue;
 
-        for (const player of client.watchedPlayers[guildId]) {
+        for (const player of guild.watchedPlayers) {
             const data = latestDataBuffer[player];
             if (!data) continue;
 
@@ -105,7 +91,11 @@ cron.schedule('*/2 * * * *', async () => {
                     v: data[gameKey]?.victories || 0,
                     p: data[gameKey]?.played || 0
                 };
-                const prev = client.statsCache[player]?.[gameKey] || { v: 0, p: 0, s: 0 };
+
+                // cacheMap（DBから取ってきたデータ）から過去のデータを取得
+                const playerCache = cacheMap.get(player);
+                // Mongoose の Map からデータを取る時は .get() を使うか、プレーンなオブジェクトに変換しておく
+                const prev = (playerCache instanceof Map ? playerCache.get(gameKey) : playerCache?.[gameKey]) || { v: 0, p: 0, s: 0 };
                 const gameName = getGameName(gameKey);
 
                 const diffV = current.v - prev.v;
@@ -132,14 +122,13 @@ cron.schedule('*/2 * * * *', async () => {
                     const color = newStreak > 0 ? '#00FF00' : '#FF4500';
                     const img = new AttachmentBuilder()
                         .setName(`${gameKey}.png`)
-                        .setFile(`./images/${gameKey}.png`);
+                        .setFile(path.join(__dirname, 'images', `${gameKey}.png`));
                     try {
                         channel.send({ embeds: [fields_embed(`${player}: ${gameName}`, undefined, fields, `attachment://${gameKey}.png`, color)], files: [img] });
                     } catch (error) {
                         custom.error(`メッセージの送信に失敗しました\n${error}`, "");
                     }
 
-                    // 一時的なバッファに連勝数を保存（後で一括更新するため）
                     if (!latestDataBuffer[player].streaks) latestDataBuffer[player].streaks = {};
                     latestDataBuffer[player].streaks[gameKey] = newStreak;
                 }
@@ -147,29 +136,37 @@ cron.schedule('*/2 * * * *', async () => {
         }
     }
 
-    // 4. 最後に一括でキャッシュを更新
+    // 5. 最後に一括で MongoDB のキャッシュを更新
     for (const player in latestDataBuffer) {
         const data = latestDataBuffer[player];
-        if (!client.statsCache[player]) client.statsCache[player] = {};
+        const playerCache = cacheMap.get(player) || {};
+        const updatedCache = {};
 
         ['sky', 'bed', 'ctf', 'hide', 'dr', 'murder', 'sg', 'drop', 'ground', 'build', 'party', 'bridge', 'grav'].forEach(gameKey => {
+            const prevGame = (playerCache instanceof Map ? playerCache.get(gameKey) : playerCache?.[gameKey]) || {};
             const updatedStreak = data.streaks?.[gameKey] !== undefined
                 ? data.streaks[gameKey]
-                : (client.statsCache[player][gameKey]?.s || 0);
+                : (prevGame.s || 0);
 
-            client.statsCache[player][gameKey] = {
+            updatedCache[gameKey] = {
                 v: data[gameKey]?.victories || 0,
                 p: data[gameKey]?.played || 0,
                 s: updatedStreak
             };
         });
+
+        // upsert (存在しなければ作成、あれば更新) で保存
+        await UserCache.updateOne(
+            { _id: player },
+            { $set: { cache: updatedCache } },
+            { upsert: true }
+        );
     }
-    client.saveData(client.CACHE_FILE, client.statsCache);
 });
 
+// (以下、コマンド・イベント読み込みとログイン処理はそのまま)
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
 for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     const command = require(filePath);
@@ -182,7 +179,6 @@ for (const file of commandFiles) {
 
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
 for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
     const event = require(filePath);

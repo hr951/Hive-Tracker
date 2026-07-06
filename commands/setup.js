@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { HiveTracker } = require('../db/db.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,8 +15,17 @@ module.exports = {
         const guildId = interaction.guildId;
         const channel = interaction.options.getChannel('channel');
 
-        client.guildConfigs[guildId] = channel.id;
-        client.saveData(client.GUILD_CONFIG_FILE, client.guildConfigs);
+        // サーバーIDをキーにして、送信先チャンネルIDを設定。サーバー名も一緒に更新
+        await HiveTracker.updateOne(
+            { _id: guildId },
+            { 
+                $set: { 
+                    channelId_send: channel.id,
+                    serverName: interaction.guild.name
+                } 
+            },
+            { upsert: true }
+        );
 
         await interaction.reply({ content: `✅ このサーバーの通知先を ${channel} に設定しました。`, flags: [MessageFlags.Ephemeral] });
     }

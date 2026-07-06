@@ -1,11 +1,11 @@
 const { ActivityType, PresenceUpdateStatus } = require("discord.js");
-require("dotenv").config();
+const { UserCache } = require('../db/db.js');
 
 module.exports = {
     name: 'clientReady',
     async execute(client) {
-        setInterval(() => {
-            const trackingPlayers = Object.keys(client.statsCache).length;
+        setInterval(async () => {
+            const trackingPlayers = await UserCache.countDocuments({});
             client.user.setPresence({
                 activities: [
                     {
