@@ -31,8 +31,8 @@ const token = process.env.DISCORD_BOT_TOKEN;
 const uri = process.env.DB;
 
 mongoose.connect(uri)
-    .then(() => console.log(' Connected DataBase - index.js'))
-    .catch(err => console.error('MongoDB Connection Error:', err));
+    .then(() => custom.log('Connected DataBase - index.js'))
+    .catch(err => custom.error('MongoDB Connection Error:', err));
 
 client.commands = new Collection();
 
@@ -43,6 +43,10 @@ client.fetchAllStats = async (player) => {
     } catch (error) {
         if (error.response?.status !== 404) {
             custom.error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
+            if (error.response?.status === 429) {
+                const retryAfterHeader = error.response?.headers.get('retry-after');
+                custom.error(`${retryAfterHeader}秒待機してください`);
+            }
         }
         return null;
     }
