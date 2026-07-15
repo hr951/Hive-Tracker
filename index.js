@@ -30,6 +30,9 @@ const client = new Client({
 const token = process.env.DISCORD_BOT_TOKEN;
 const uri = process.env.DB;
 
+const LOCK_FILE = path.join(__dirname, 'api_429_lock');
+const COOLDOWN_TIME_MS = 20 * 60 * 1000;
+
 mongoose.connect(uri)
     .then(() => custom.log('Connected DataBase - index.js'))
     .catch(err => custom.error('MongoDB Connection Error:', err));
@@ -44,16 +47,36 @@ client.fetchAllStats = async (player) => {
         if (error.response?.status !== 404) {
             custom.error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
             if (error.response?.status === 429) {
-                const retryAfterHeader = error.response?.headers.get('retry-after');
-                custom.error(`${retryAfterHeader}秒待機してください`);
+                fs.writeFileSync(LOCK_FILE, 'locked', 'utf8');
             }
         }
         return null;
     }
 };
 
+function isLocked() {
+    if (fs.existsSync(LOCK_FILE)) {
+        const stats = fs.statSync(LOCK_FILE);
+        const elapsed = Date.now() - stats.mtimeMs;
+
+        if (elapsed < COOLDOWN_TIME_MS) {
+            const remaining = Math.ceil((COOLDOWN_TIME_MS - elapsed) / 1000);
+            custom.log(`現在、429エラー制限による一時停止中です。残り ${remaining} 秒スキップします。`);
+            return true;
+        } else {
+            custom.log("クールダウン期間が終了したため、ロックファイルを削除して通常処理に戻ります。");
+            fs.unlinkSync(LOCK_FILE);
+        }
+    }
+    return false;
+}
+
 // 2. 定期監視 (2分おき)
 cron.schedule('*/2 * * * *', async () => {
+    if (isLocked()) {
+        return;
+    }
+
     // 1. DBからすべての有効なサーバー設定と、すべてのキャッシュデータを一括取得
     const allGuilds = await HiveTracker.find({});
     const allCaches = await UserCache.find({});

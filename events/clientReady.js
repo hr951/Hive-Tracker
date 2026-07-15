@@ -1,5 +1,25 @@
 const { ActivityType, PresenceUpdateStatus } = require("discord.js");
 const { UserCache } = require('../db/db.js');
+const path = require('path');
+const fs = require('fs');
+
+const LOCK_FILE = path.join(__dirname, '..', 'api_429_lock');
+const COOLDOWN_TIME_MS = 20 * 60 * 1000;
+
+function isLocked() {
+    if (fs.existsSync(LOCK_FILE)) {
+        const stats = fs.statSync(LOCK_FILE);
+        const elapsed = Date.now() - stats.mtimeMs;
+
+        if (elapsed < COOLDOWN_TIME_MS) {
+            const remaining = Math.ceil((COOLDOWN_TIME_MS - elapsed) / 1000);
+            return remaining;
+        } else {
+            fs.unlinkSync(LOCK_FILE);
+        }
+    }
+    return false;
+}
 
 module.exports = {
     name: 'clientReady',
@@ -9,11 +29,11 @@ module.exports = {
             client.user.setPresence({
                 activities: [
                     {
-                        name: `${trackingPlayers}人のユーザーを追跡中`,
+                        name: isLocked() ? `${isLocked()}秒後に追跡を再開します` : `${trackingPlayers}人のユーザーを追跡中`,
                         type: ActivityType.Playing
                     }
                 ],
-                status: PresenceUpdateStatus.Online // Online : いつもの, DoNotDisturb : 赤い奴, Idle : 月のやつ, Invisible : 表示なし
+                status: isLocked() ? PresenceUpdateStatus.Idle : PresenceUpdateStatus.Online // Online : いつもの, DoNotDisturb : 赤い奴, Idle : 月のやつ, Invisible : 表示なし
             });
         }, 10_000);
 
