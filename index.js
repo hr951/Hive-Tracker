@@ -31,7 +31,6 @@ const token = process.env.DISCORD_BOT_TOKEN;
 const uri = process.env.DB;
 
 const LOCK_FILE = path.join(__dirname, 'api_429_lock');
-const COOLDOWN_TIME_MS = 20 * 60 * 1000;
 
 mongoose.connect(uri)
     .then(() => custom.log('Connected DataBase - index.js'))
@@ -47,6 +46,7 @@ client.fetchAllStats = async (player) => {
         if (error.response?.status !== 404) {
             custom.error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
             if (error.response?.status === 429) {
+                client.COOLDOWN_TIME_MS = error.response?.headers.get('retry-after') * 1000 || 20 * 60 * 1000;
                 fs.writeFileSync(LOCK_FILE, 'locked', 'utf8');
             }
         }
@@ -59,8 +59,8 @@ function isLocked() {
         const stats = fs.statSync(LOCK_FILE);
         const elapsed = Date.now() - stats.mtimeMs;
 
-        if (elapsed < COOLDOWN_TIME_MS) {
-            const remaining = Math.ceil((COOLDOWN_TIME_MS - elapsed) / 1000);
+        if (elapsed < client.COOLDOWN_TIME_MS) {
+            const remaining = Math.ceil((client.COOLDOWN_TIME_MS - elapsed) / 1000);
             custom.log(`現在、429エラー制限による一時停止中です。残り ${remaining} 秒スキップします。`);
             return true;
         } else {
