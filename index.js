@@ -31,6 +31,7 @@ const token = process.env.DISCORD_BOT_TOKEN;
 const uri = process.env.DB;
 
 const LOCK_FILE = path.join(__dirname, 'api_429_lock');
+client.COOLDOWN_TIME_MS = 0;
 
 mongoose.connect(uri)
     .then(() => custom.log('Connected DataBase - index.js'))
