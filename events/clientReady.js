@@ -34,7 +34,7 @@ module.exports = {
                 ],
                 status: isLocked(client) ? PresenceUpdateStatus.Idle : PresenceUpdateStatus.Online // Online : いつもの, DoNotDisturb : 赤い奴, Idle : 月のやつ, Invisible : 表示なし
             });
-        }, 10_000);
+        }, 5_000);
 
         custom.log(`Logged in as ${client.user.tag}`);
     },

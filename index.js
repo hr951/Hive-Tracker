@@ -46,7 +46,9 @@ client.fetchAllStats = async (player) => {
         if (error.response?.status !== 404) {
             custom.error(`${player} のデータ取得失敗: ${error.message}`, error.response?.status);
             if (error.response?.status === 429) {
-                client.COOLDOWN_TIME_MS = error.response?.headers.get('retry-after') * 1000 || 20 * 60 * 1000;
+                if (client.COOLDOWN_TIME_MS < (error.response?.headers.get('retry-after') * 1000 || 20 * 60 * 1000)) {
+                    client.COOLDOWN_TIME_MS = error.response?.headers.get('retry-after') * 1000 || 20 * 60 * 1000;
+                }
                 fs.writeFileSync(LOCK_FILE, 'locked', 'utf8');
             }
         }
@@ -65,6 +67,7 @@ function isLocked() {
             return true;
         } else {
             custom.log("クールダウン期間が終了したため、ロックファイルを削除して通常処理に戻ります。");
+            client.COOLDOWN_TIME_MS = 0;
             fs.unlinkSync(LOCK_FILE);
         }
     }
